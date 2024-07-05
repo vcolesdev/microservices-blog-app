@@ -7,6 +7,8 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+const events = [];
+
 const PORT = 4005;
 
 /**
@@ -28,11 +30,19 @@ async function postNewEvent(port, request) {
 app.post('/events', async function(req, res) {
   const event = req.body;
 
-  await postNewEvent(4000, req);
-  await postNewEvent(4001, req);
-  await postNewEvent(4002, req);
+  // Add the event to the events array.
+  events.push(event);
+
+  await postNewEvent(4000, req); // Posts service.
+  await postNewEvent(4001, req); // Comments service.
+  await postNewEvent(4002, req); // Query service
+  await postNewEvent(4003, req); // Moderation service.
 
   res.send({ status: "OK" });
+});
+
+app.get('/events', (req, res) => {
+  res.send(events);
 });
 
 app.listen(PORT, function() {

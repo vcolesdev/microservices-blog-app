@@ -16,6 +16,7 @@ export default function PostList() {
       setPosts(res.data);
     } catch (err) {
       console.error(err);
+      setPosts([]);
     }
   }
 

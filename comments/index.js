@@ -21,12 +21,10 @@ app.post("/posts/:id/comments", async (req, res) => {
   const commentId = randomBytes(4).toString("hex");
   const { content } = req.body;
 
-  // Get the comments for the given post id.
-  // Add the new comment to the comments array.
-  // Save the comments back to the commentsByPostId object.
-  // Send the newly created comment back to the client.
   const comments = commentsByPostId[req.params.id] || [];
-  comments.push({ id: commentId, content });
+
+  comments.push({ id: commentId, content, status: "PENDING" });
+
   commentsByPostId[req.params.id] = comments;
 
   console.log("Comment Created", comments);
@@ -37,6 +35,7 @@ app.post("/posts/:id/comments", async (req, res) => {
       id: commentId,
       content,
       postId: req.params.id,
+      status: "PENDING",
     },
   });
 
@@ -44,8 +43,38 @@ app.post("/posts/:id/comments", async (req, res) => {
 });
 
 // Route handler for receiving queries from the event bus.
-app.post("/events", (req, res) => {
+app.post("/events", async (req, res) => {
   console.log("Received event: ", req.body.type);
+
+  const { type, data } = req.body;
+
+  // If the event type is COMMENT_MODERATED, then update the status of the comment.
+  if (type === "COMMENT_MODERATED") {
+    const { id, postId, status, content } = data;
+
+    // Get the list of comments for the given post id.
+    const comments = commentsByPostId[postId] || [];
+
+    // Find the comment with the ID given in the request.
+    const comment = comments.find((comment) => {
+      return comment.id === id;
+    })
+
+    // Update the status of the comment.
+    comment.status = status;
+
+    // Make a post request to the event bus with the updated comment.
+    await axios.post("http://localhost:4005/events", {
+      type: "COMMENT_UPDATED",
+      data: {
+        id,
+        postId,
+        status,
+        content,
+      },
+    })
+  }
+
   res.send({});
 });
 
