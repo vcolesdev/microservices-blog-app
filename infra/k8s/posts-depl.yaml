@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: posts-depl
+spec:
+  replicas: 1
+  # Selects all the pods that match the label "posts"
+  selector:
+    matchLabels:
+      app: posts
+  # Config for the pod we are creating
+  template:
+    metadata:
+      labels:
+        app: posts
+    # The specifications (spec) config options for our pod
+    spec:
+      containers:
+        - name: posts
+          image: vcolesdev/posts:0.0.1
+          imagePullPolicy: Never

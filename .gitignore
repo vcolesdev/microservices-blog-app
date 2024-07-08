@@ -1,0 +1,3 @@
+infra/registry-creds
+
+infra/k8s/traefik-secret.yaml

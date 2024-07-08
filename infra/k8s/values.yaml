@@ -1,0 +1,32 @@
+# https://www.paulsblog.dev/how-to-install-traefik-ingress-controller-in-kubernetes/
+# Configures our Traefik proxy for docker-registry.vcolesapp.io
+---
+additionalArguments:
+  - --entrypoints.cpanel.http.tls.certresolver=cpanel
+  - --entrypoints.cpanel.http.tls.domains[0].main=vcolesapp.io
+  - --entrypoints.cpanel.http.tls.domains[0].sans=*.vcolesapp.io
+  - --certificatesresolvers.cpanel.acme.dnschallenge.provider=cpanel
+  - --certificatesresolvers.cpanel.acme.email=webmaster@vcolesapp.io
+  - --certificatesresolvers.cpanel.acme.dnschallenge.resolvers=1.1.1.1
+  - --certificatesresolvers.cpanel.acme.storage=/data/acme.json
+deployment:
+  initContainers:
+    - name: volume-permissions
+      image: busybox:1.31.1
+      command: ["sh", "-c", "chmod -Rv 600 /data/*"]
+      volumeMounts:
+        - name: data
+          mountPath: /data
+env:
+  - name: CPANEL_API_KEY
+    valueFrom:
+      secretKeyRef:
+        key: CPANEL_API_KEY
+        name: cpanel-api-credentials
+ingressRoute:
+  dashboard:
+    enabled: true
+persistence:
+  enabled: true
+  path: /data
+  size: 128Mi
